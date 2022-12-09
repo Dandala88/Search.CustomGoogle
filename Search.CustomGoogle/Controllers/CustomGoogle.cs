@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Google.Apis.CustomSearchAPI.v1;
+using Google.Apis.Services;
 
 namespace Search.CustomGoogle.Controllers
 {
@@ -14,9 +17,27 @@ namespace Search.CustomGoogle.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public IActionResult Get()
         {
-            return Ok();
+            string apiKey = " AIzaSyAN6bAeMhdBgrToaMfpT6AA8YWJplAvi4Y ";
+            string cx = "223af247142d64b1b";
+            string query = "Omelette";
+
+            var svc = new CustomSearchAPIService(new BaseClientService.Initializer { ApiKey = apiKey });
+            var listRequest = svc.Cse.List();
+            listRequest.Q = query;
+            listRequest.Cx = cx;
+            try
+            {
+                var result = listRequest.Execute();
+
+                return Ok(result);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
