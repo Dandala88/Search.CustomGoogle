@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Google.Apis.CustomSearchAPI.v1;
 using Google.Apis.Services;
+using System.Text.Json;
+using Search.CustomGoogle.Models;
+using Search.CustomGoogle.Interfaces;
 
 namespace Search.CustomGoogle.Controllers
 {
@@ -10,29 +13,21 @@ namespace Search.CustomGoogle.Controllers
     public class CustomGoogle : ControllerBase
     {
         private readonly ILogger<CustomGoogle> _logger;
-        private readonly string googleApiKey;
-        private readonly string googleCseId;
+        private readonly ICustomGoogleService _customGoogleService;
 
-        public CustomGoogle(ILogger<CustomGoogle> logger, IConfiguration configuration)
+        public CustomGoogle(ILogger<CustomGoogle> logger, IConfiguration configuration, ICustomGoogleService customGoogleService)
         {
             _logger = logger;
-            googleApiKey = configuration.GetSection("GoogleSearch:ApiKey").Value;
-            googleCseId = configuration.GetSection("GoogleSearch:EngineId").Value;
+            _customGoogleService = customGoogleService;
         }
 
         [HttpGet]
         [Authorize]
-        public IActionResult Get()
+        public IActionResult Get([FromQuery] string q)
         {
-            string query = "Omelette";
-
-            var svc = new CustomSearchAPIService(new BaseClientService.Initializer { ApiKey = googleApiKey });
-            var listRequest = svc.Cse.List();
-            listRequest.Q = query;
-            listRequest.Cx = googleCseId;
             try
             {
-                var result = listRequest.Execute();
+                var result = _customGoogleService.Search(q);
 
                 return Ok(result);
             }
@@ -41,5 +36,24 @@ namespace Search.CustomGoogle.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet]
+        [Authorize]
+        [Route("Pages")]
+        public async Task<IActionResult> GetPages([FromQuery] string q)
+        {
+            try
+            {
+                var result = _customGoogleService.Search(q);
+                var pages = await _customGoogleService.GetPages(result);
+
+                return Ok(pages);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
     }
 }

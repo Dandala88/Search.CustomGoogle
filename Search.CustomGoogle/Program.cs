@@ -1,4 +1,7 @@
+using Core.HttpDynamo;
 using Core.JwtBuilder;
+using Search.CustomGoogle.Interfaces;
+using Search.CustomGoogle.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +12,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddJwtBuilderAuthentication(builder.Configuration);
+builder.Services.AddHttpDynamo();
+builder.Services.AddScoped<ICustomGoogleService, CustomGoogleService>();
 
 var app = builder.Build();
 
