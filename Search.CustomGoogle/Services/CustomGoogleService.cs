@@ -38,33 +38,38 @@ namespace Search.CustomGoogle.Services
             return pages;
         }
 
-        public SearchResponse Search(string query)
+        public SearchResponse Search(string query, int limit)
         {
-            var svc = new CustomSearchAPIService(new BaseClientService.Initializer { ApiKey = googleApiKey });
-            var listRequest = svc.Cse.List();
-            listRequest.Q = query;
-            listRequest.Cx = googleCseId;
-
-            var result = listRequest.Execute();
-
             var searchResponse = new SearchResponse()
             {
                 Items = new List<Item>()
             };
 
-            foreach (var item in result.Items)
+            var svc = new CustomSearchAPIService(new BaseClientService.Initializer { ApiKey = googleApiKey });
+            var listRequest = svc.Cse.List();
+            listRequest.Q = query;
+            listRequest.Cx = googleCseId;
+            listRequest.Start = 0;
+            while (listRequest.Start < limit)
             {
-                var newItem = new Item();
-                newItem.DisplayLink = item.DisplayLink;
-                newItem.FormattedUrl = item.FormattedUrl;
-                newItem.HtmlFormattedUrl = item.HtmlFormattedUrl;
-                newItem.HtmlSnippet = item.HtmlSnippet;
-                newItem.HtmlTitle = item.HtmlTitle;
-                newItem.Link = item.Link;
-                newItem.Snippet = item.Snippet;
-                newItem.Title = item.Title;
+                var result = listRequest.Execute();
 
-                searchResponse.Items.Add(newItem);
+                foreach (var item in result.Items)
+                {
+                    var newItem = new Item();
+                    newItem.DisplayLink = item.DisplayLink;
+                    newItem.FormattedUrl = item.FormattedUrl;
+                    newItem.HtmlFormattedUrl = item.HtmlFormattedUrl;
+                    newItem.HtmlSnippet = item.HtmlSnippet;
+                    newItem.HtmlTitle = item.HtmlTitle;
+                    newItem.Link = item.Link;
+                    newItem.Snippet = item.Snippet;
+                    newItem.Title = item.Title;
+
+                    searchResponse.Items.Add(newItem);
+                }
+
+                listRequest.Start += 10;
             }
             
             return searchResponse;

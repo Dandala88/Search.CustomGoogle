@@ -23,11 +23,12 @@ namespace Search.CustomGoogle.Controllers
 
         [HttpGet]
         [Authorize]
-        public IActionResult Get([FromQuery] string q)
+        public IActionResult Get([FromQuery] string q, [FromQuery] int? limit)
         {
             try
             {
-                var result = _customGoogleService.Search(q);
+                if(limit == null) limit = 100;
+                var result = _customGoogleService.Search(q, limit.Value);
 
                 return Ok(result);
             }
@@ -40,11 +41,12 @@ namespace Search.CustomGoogle.Controllers
         [HttpGet]
         [Authorize]
         [Route("Pages")]
-        public async Task<IActionResult> GetPages([FromQuery] string q)
+        public async Task<IActionResult> GetPages([FromQuery] string q, [FromQuery] int? limit)
         {
             try
             {
-                var result = _customGoogleService.Search(q);
+                if (limit == null) limit = 100;
+                var result = _customGoogleService.Search(q, limit.Value);
                 var pages = await _customGoogleService.GetPages(result);
 
                 return Ok(pages);
